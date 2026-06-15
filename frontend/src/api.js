@@ -1,6 +1,10 @@
 import { io } from 'socket.io-client';
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE || (
+  import.meta.env.MODE === 'production'
+    ? '' // Relative path in production (same domain Vercel deployment)
+    : 'http://localhost:5000' // Local development backend fallback
+);
 
 // Tenant Subdomain Helper
 const getSlug = () => {
@@ -247,7 +251,7 @@ let socket = null;
 
 export const getSocket = () => {
   if (!socket) {
-    socket = io(API_BASE, {
+    socket = io(API_BASE || window.location.origin, {
       autoConnect: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000
