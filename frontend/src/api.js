@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 
 const API_BASE = import.meta.env.VITE_API_BASE || (
   import.meta.env.MODE === 'production'
-    ? '' // Relative path in production (same domain Vercel deployment)
+    ? '/_/backend' // Point to the backend route prefix for stitch/IDX service routing
     : 'http://localhost:5000' // Local development backend fallback
 );
 
@@ -251,11 +251,19 @@ let socket = null;
 
 export const getSocket = () => {
   if (!socket) {
-    socket = io(API_BASE || window.location.origin, {
+    const isRelative = API_BASE.startsWith('/');
+    const socketUrl = isRelative ? window.location.origin : API_BASE;
+    const socketOpts = {
       autoConnect: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000
-    });
+    };
+    
+    if (isRelative) {
+      socketOpts.path = `${API_BASE}/socket.io`;
+    }
+    
+    socket = io(socketUrl, socketOpts);
   }
   return socket;
 };
